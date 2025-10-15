@@ -1,0 +1,48 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: spms-ui
+spec:
+  hosts:
+  - "ui.spms.svc.cluster.local"
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: ui.spms.svc.cluster.local
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: spms-data
+spec:
+  hosts:
+  - "data.spms.svc.cluster.local"
+  http:
+  - route:
+    - destination:
+        host: data.spms.svc.cluster.local
+        port:
+          number: 5001
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: spms-trigger
+spec:
+  hosts:
+  - "trigger.spms.svc.cluster.local"
+  http:
+  - route:
+    - destination:
+        host: trigger.spms.svc.cluster.local
+        port:
+          number: 5002

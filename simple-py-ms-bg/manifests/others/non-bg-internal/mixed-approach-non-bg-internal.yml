@@ -1,0 +1,77 @@
+# =======================
+# SOLUTION 1: MIXED APPROACH (RECOMMENDED)
+# External: Gateway, Internal: Direct + VirtualServices
+# =======================
+
+# Gateway for external traffic
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  namespace: spms
+  name: spms-gateway
+spec:
+  selector:
+    istio: gateway
+    app: gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+# External VirtualService (for browser → UI)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: external-ui-routes
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - spms-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: ui.spms.svc.cluster.local
+        port:
+          number: 80
+
+---
+# Internal VirtualService for DATA service (blue-green)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: data-internal-routing
+spec:
+  hosts:
+  - data.spms.svc.cluster.local  # Intercepts your hardcoded URL
+  http:
+  - route:
+    - destination:
+        host: data.spms.svc.cluster.local
+        port:
+          number: 5001
+---
+# Internal VirtualService for TRIGGER service (blue-green)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: trigger-internal-routing
+spec:
+  hosts:
+  - trigger.spms.svc.cluster.local  # Intercepts your hardcoded URL
+  http:
+  - route:
+    - destination:
+        host: trigger.spms.svc.cluster.local
+        port:
+          number: 5002
+---

@@ -1,0 +1,116 @@
+# apiVersion: networking.istio.io/v1beta1
+# kind: Gateway
+# metadata:
+#   namespace: spms
+#   name: spms-gateway
+# spec:
+#   selector:
+#     istio: gateway
+#     app: gateway
+#   servers:
+#   - port:
+#       number: 80
+#       name: http
+#       protocol: HTTP
+#     hosts:
+#     - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: spms-routes
+spec:
+  hosts:
+  - "*"
+  http:
+  - match:
+    - uri:
+        exact: /trigger/action
+    rewrite:
+      uri: /action
+    route:
+    - destination:
+        host: trigger.spms.svc.cluster.local
+        port:
+          number: 5002
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: ui.spms.svc.cluster.local
+        port:
+          number: 80          
+
+# apiVersion: networking.istio.io/v1beta1
+# kind: Gateway
+# metadata:
+#   namespace: spms
+#   name: spms-gateway
+# spec:
+#   selector:
+#     #istio: ingress
+#     istio: gateway
+#     app: gateway
+#   servers:
+#   - port:
+#       number: 80
+#       name: http
+#       protocol: HTTP
+#     hosts:
+#     - "*"
+# ---
+# apiVersion: networking.istio.io/v1beta1
+# kind: VirtualService
+# metadata:
+#   namespace: spms
+#   name: spms-ui
+# spec:
+#   hosts:
+#   - "*"
+#   gateways:
+#   - spms-gateway
+#   http:
+#   - match:
+#     - uri:
+#         exact: /
+#     route:
+#     - destination:
+#         host: ui.spms.svc.cluster.local
+#         port:
+#           number: 80
+# ---
+# apiVersion: networking.istio.io/v1beta1
+# kind: VirtualService
+# metadata:
+#   namespace: spms
+#   name: spms-data
+# spec:
+#   hosts:
+#   - "data.spms.svc.cluster.local"
+#   gateways:
+#   - spms-gateway
+#   http:
+#   - route:
+#     - destination:
+#         host: data.spms.svc.cluster.local
+#         port:
+#           number: 5001
+# ---          
+# apiVersion: networking.istio.io/v1beta1
+# kind: VirtualService
+# metadata:
+#   namespace: spms
+#   name: spms-trigger
+# spec:
+#   hosts:
+#   - "trigger.spms.svc.cluster.local"
+#   gateways:
+#   - spms-gateway
+#   http:
+#   - route:
+#     - destination:
+#         host: trigger.spms.svc.cluster.local
+#         port:
+#           number: 5002

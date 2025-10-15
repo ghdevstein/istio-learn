@@ -1,0 +1,298 @@
+---
+# Deployment for Service ui 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-v1
+  labels:
+    app: ui
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ui
+        version: v1
+    spec:
+      containers:
+      - name: ui
+        image: vinodhdevaarul/simple-py-ms:ui-v1-bg-01
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Deployment for Service ui 2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-v2
+  labels:
+    app: ui
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: ui
+        version: v2
+    spec:
+      containers:
+      - name: ui
+        image: vinodhdevaarul/simple-py-ms:ui-v2-bg-01
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Service for Service ui
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: ui
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: ui
+
+---
+# Deployment for Service data v1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-v1
+  labels:
+    app: data
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: data
+        version: v1
+    spec:
+      containers:
+      - name: data
+        image: vinodhdevaarul/simple-py-ms:data-v1-bg-01
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5001
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /data
+            port: 5001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /data
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Deployment for Service data v2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-v2
+  labels:
+    app: data
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: data
+        version: v2
+    spec:
+      containers:
+      - name: data
+        image: vinodhdevaarul/simple-py-ms:data-v2-bg-01
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5001
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /data
+            port: 5001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /data
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Service for Service data
+apiVersion: v1
+kind: Service
+metadata:
+  name: data
+  labels:
+    app: data
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5001
+    targetPort: 5001
+    protocol: TCP
+    name: http
+  selector:
+    app: data
+
+---
+# Deployment for Service trigger
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trigger
+  labels:
+    app: trigger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trigger
+  template:
+    metadata:
+      labels:
+        app: trigger
+    spec:
+      containers:
+      - name: trigger
+        image: vinodhdevaarul/simple-py-ms:trigger-bg-01
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5002
+        env:
+        - name: FLASK_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /action
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /action
+            port: 5002
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Service for Service trigger
+apiVersion: v1
+kind: Service
+metadata:
+  name: trigger
+  labels:
+    app: trigger
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5002
+    targetPort: 5002
+    protocol: TCP
+    name: http
+  selector:
+    app: trigger
+---

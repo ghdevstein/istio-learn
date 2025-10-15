@@ -1,0 +1,228 @@
+# =======================
+# SOLUTION 1: MIXED APPROACH (RECOMMENDED)
+# External: Gateway, Internal: Direct + VirtualServices
+# =======================
+
+# Gateway for external traffic
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  namespace: spms
+  name: spms-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+
+---
+# External VirtualService (for browser → UI)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: external-ui-routes
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - spms-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: ui.spms.svc.cluster.local
+        port:
+          number: 80
+
+---
+# Internal VirtualService for DATA service (blue-green)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: data-internal-routing
+spec:
+  hosts:
+  - data.spms.svc.cluster.local  # Intercepts your hardcoded URL
+  http:
+  - route:
+    - destination:
+        host: data-blue.spms.svc.cluster.local
+      weight: 100
+    - destination:
+        host: data-green.spms.svc.cluster.local
+      weight: 0
+
+---
+# Internal VirtualService for TRIGGER service (blue-green)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: trigger-internal-routing
+spec:
+  hosts:
+  - trigger.spms.svc.cluster.local  # Intercepts your hardcoded URL
+  http:
+  - route:
+    - destination:
+        host: trigger-blue.spms.svc.cluster.local
+      weight: 100
+    - destination:
+        host: trigger-green.spms.svc.cluster.local
+      weight: 0
+
+---
+# Internal VirtualService for UI service (blue-green)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  namespace: spms
+  name: ui-internal-routing
+spec:
+  hosts:
+  - ui.spms.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: ui-blue.spms.svc.cluster.local
+      weight: 100
+    - destination:
+        host: ui-green.spms.svc.cluster.local
+      weight: 0
+
+---
+# Blue and Green Services for each component
+# DATA SERVICES
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-blue
+  namespace: spms
+spec:
+  selector:
+    app: data
+    version: blue
+  ports:
+  - port: 5001
+    targetPort: 5001
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-green
+  namespace: spms
+spec:
+  selector:
+    app: data
+    version: green
+  ports:
+  - port: 5001
+    targetPort: 5001
+
+---
+# TRIGGER SERVICES
+apiVersion: v1
+kind: Service
+metadata:
+  name: trigger-blue
+  namespace: spms
+spec:
+  selector:
+    app: trigger
+    version: blue
+  ports:
+  - port: 5002
+    targetPort: 5002
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trigger-green
+  namespace: spms
+spec:
+  selector:
+    app: trigger
+    version: green
+  ports:
+  - port: 5002
+    targetPort: 5002
+
+---
+# UI SERVICES
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-blue
+  namespace: spms
+spec:
+  selector:
+    app: ui
+    version: blue
+  ports:
+  - port: 80
+    targetPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-green
+  namespace: spms
+spec:
+  selector:
+    app: ui
+    version: green
+  ports:
+  - port: 80
+    targetPort: 5000
+
+---
+# Main services (act as routers)
+apiVersion: v1
+kind: Service
+metadata:
+  name: data
+  namespace: spms
+spec:
+  selector:
+    app: data
+  ports:
+  - port: 5001
+    targetPort: 5001
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trigger
+  namespace: spms
+spec:
+  selector:
+    app: trigger
+  ports:
+  - port: 5002
+    targetPort: 5002
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  namespace: spms
+spec:
+  selector:
+    app: ui
+  ports:
+  - port: 80
+    targetPort: 5000
